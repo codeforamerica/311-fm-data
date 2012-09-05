@@ -3,20 +3,17 @@
  */
 
 var request = require('request'),
-    tempus = require('Tempus'),
-    pg = require('pg'); 
-    _ = require('underscore'),
-    argv = require("optimist").argv;
+  tempus = require('Tempus'),
+  pg = require('pg');
+  _ = require('underscore'), argv = require("optimist").argv;
 
 var baseUrl = "http://311api.cityofchicago.org/open311/v2/requests.json?extensions=true&page_size=100",
-    serviceRequests = [],
-    datetime,    
-    postgresUrl,
-    database;
+  serviceRequests = [],
+  datetime, postgresUrl, database;
 
 // sql statements
 var insertStatement = "INSERT INTO service_requests(service_request_id, status, duplicate, parent_service_request_id, requested_datetime) values($1, $2, $3, $4, $5)",
-    updateStatement = "UPDATE service_requests SET status = $2, duplicate = $3, parent_service_request_id = $4, requested_datetime = $5 WHERE service_request_id = $1";
+  updateStatement = "UPDATE service_requests SET status = $2, duplicate = $3, parent_service_request_id = $4, requested_datetime = $5 WHERE service_request_id = $1";
 
 // postgres error codes
 var duplicateKeyError = "23505";
@@ -33,13 +30,13 @@ runTime.timezoneOffset(300).addTimeStamp(-18000);
 
 // XXX: under construction: process input params:
 if (argv.dt) {
-	datetime = argv.dt;	
+  datetime = argv.dt;
 }
 if (argv.u) {
-	postgresUrl = argv.u;
-	database = new pg.Client(postgresUrl);
-	database.on('drain', database.end.bind(database)); //disconnect client when all queries are finished
-	database.connect();
+  postgresUrl = argv.u;
+  database = new pg.Client(postgresUrl);
+  database.on('drain', database.end.bind(database)); //disconnect client when all queries are finished
+  database.connect();
 }
 
 // start process of downloading - this will run via recursive calls in the callbacks 
@@ -49,38 +46,39 @@ call(1, datetime);
 /*
  * Orchestrates downloading service requests and saving them to DB (if required)
  */
+
 function call(page, datetime) {
-	var url = _buildUrlString(page, datetime);
-	console.log(url);
+  var url = _buildUrlString(page, datetime);
+  console.log(url);
 
-	request(url, function (error, response, body) {
-		if (!error && response.statusCode == 200) {
-			responses = JSON.parse(body);			
-			serviceRequests.push(responses);
+  request(url, function(error, response, body) {
+    if (!error && response.statusCode == 200) {
+      responses = JSON.parse(body);
+      serviceRequests.push(responses);
 
-			if (responses.length == 100) { 
-				call(++page, datetime); 
-			}
-			else {	
-				_.each(_.flatten(serviceRequests), function(serviceRequest) {
-					console.log(serviceRequest);
+      if (responses.length == 100) {
+        call(++page, datetime);
+      } else {
+        _.each(_.flatten(serviceRequests), function(serviceRequest) {
+          console.log(serviceRequest);
 
-					if (database) {
-						database.query({name: "insert",
-							text: insertStatement, 
-							values: [serviceRequest.service_request_id, 
-                       serviceRequest.status, 
-                       serviceRequest.extended_attributes.duplicate | false,
-                       serviceRequest.extended_attributes.parent_service_request_id,
-                       serviceRequest.requested_datetime]}
-						).on("error", function(error) {
-							_handleInsertError(error, serviceRequest);
-						});
-					}					
-				}); 
-			}
-		}
-	});
+          if (database) {
+            database.query({
+              name: "insert",
+              text: insertStatement,
+              values: [serviceRequest.service_request_id, 
+                serviceRequest.status, 
+                serviceRequest.extended_attributes.duplicate | false, 
+                serviceRequest.extended_attributes.parent_service_request_id, 
+                serviceRequest.requested_datetime]
+            }).on("error", function(error) {
+              _handleInsertError(error, serviceRequest);
+            });
+          }
+        });
+      }
+    }
+  });
 }
 
 /*
@@ -88,26 +86,26 @@ function call(page, datetime) {
  */
 
 function _handleInsertError(error, serviceRequest) {
-	if (duplicateKeyError === error.code) {
-		database.query({name: "update",
-			text: updateStatement, 
-			values: [serviceRequest.service_request_id, 
-               serviceRequest.status,
-               serviceRequest.extended_attributes.duplicate | false,
-               serviceRequest.extended_attributes.parent_service_request_id,
-               serviceRequest.requested_datetime]}
-		).on("error", function(error) {
-			// update failure for upsert case, this should not happen
-			console.log(error);
-		});
-	} else { 
-		// XXX: handle other types of db errors better
-		console.log(error);
-	}
+  if (duplicateKeyError === error.code) {
+    database.query({
+      name: "update",
+      text: updateStatement,
+      values: [serviceRequest.service_request_id, 
+        serviceRequest.status, 
+        serviceRequest.extended_attributes.duplicate | false, 
+        serviceRequest.extended_attributes.parent_service_request_id, 
+        serviceRequest.requested_datetime]
+    }).on("error", function(error) {
+      // update failure for upsert case, this should not happen
+      console.log(error);
+    });
+  } else {
+    // XXX: handle other types of db errors better
+    console.log(error);
+  }
 }
 
 function _buildUrlString(page, datetime) {
-	var url = baseUrl + "&page=" + page + "&updated_after=" + datetime;
-
-	return url;
+  var url = baseUrl + "&page=" + page + "&updated_after=" + datetime;
+  return url;
 }
