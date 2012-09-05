@@ -1,6 +1,7 @@
 --
--- PostgreSQL database dump
+-- PostgreSQL database dump for fm_311_mirror
 -- pg_dump --host localhost --schema-only --no-owner fm_311_mirror > schema.sql
+-- psql fm_311_mirror < schema.sql
 --
 
 SET statement_timeout = 0;
