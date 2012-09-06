@@ -16,7 +16,6 @@ SET client_min_messages = warning;
 
 CREATE EXTENSION IF NOT EXISTS plpgsql WITH SCHEMA pg_catalog;
 
-
 --
 -- Name: EXTENSION plpgsql; Type: COMMENT; Schema: -; Owner: -
 --
@@ -39,7 +38,19 @@ CREATE TABLE service_requests (
     status character varying(15),
     duplicate boolean,
     parent_service_request_id character varying(30),
-    requested_datetime timestamp with time zone NOT NULL
+    requested_datetime timestamp with time zone NOT NULL,
+    updated_datetime timestamp with time zone NOT NULL,
+    opened_datetime timestamp with time zone,
+    closed_datetime timestamp with time zone,
+    service_name character varying(50) NOT NULL,
+    service_code character varying(50) NOT NULL,
+    agency_responsible character varying(100) NOT NULL,
+    lat double precision,
+    long double precision,
+    zipcode character varying(10),
+    channel character varying(20),
+    ward character varying(10),
+    police_district character varying(10)
 );
 
 
