@@ -4,7 +4,7 @@
 
 var request = require('request'),
   tempus = require('Tempus'),
-  pg = require('pg');
+  pg = require('pg').native;
   _ = require('underscore'), argv = require("optimist").argv;
 
 var baseUrl = "http://311api.cityofchicago.org/open311/v2/requests.json?extensions=true&page_size=100",
@@ -43,7 +43,7 @@ if (argv.dt) {
 }
 if (argv.u) {
   postgresUrl = argv.u;
-  database = new pg.Client(postgresUrl);
+  database = new pg.Client(process.env.DATABASE_URL || postgresUrl);
   database.on('drain', database.end.bind(database)); //disconnect client when all queries are finished
   database.connect();
 }
