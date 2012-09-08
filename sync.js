@@ -85,6 +85,10 @@ function call(page, datetime) {
                 return note;
               }
             }) || {};
+            // Extended attributes are not guaranteed to be present
+            if (!serviceRequest.extended_attributes) {
+              serviceRequest.extended_attributes = {};
+            }
             database.query({
               name: "insert",
               text: insertStatement,
