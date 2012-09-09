@@ -43,7 +43,7 @@ app.get('/api/v1/:ward/summary', function(req, res){
   ).on('row', function(result) {
     response.stats = result;
   }).on('end', function() {
-  	console.log(response);
+    console.log(response);
     res.jsonp(200, response);
   });
 });
