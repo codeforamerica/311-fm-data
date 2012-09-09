@@ -17,9 +17,9 @@ app.get('/', function(req, res){
 
 app.get('/api/v1/:ward/summary', function(req, res){
 
-	console.log(req.originalUrl);
+  console.log(req.originalUrl);
 
-	var ward = req.params.ward,
+  var ward = req.params.ward,
       start = req.query.start;
       end = req.query.end;
 
