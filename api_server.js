@@ -49,5 +49,5 @@ app.get('/api/v1/:ward/summary', function(req, res){
 });
 
 // start server
-app.listen(3000);
+app.listen(process.env.PORT || 3000);
 console.log("server running...");
