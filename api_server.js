@@ -40,16 +40,20 @@ app.get('/api/v1/:ward/summary', function(req, res){
     "       closed_requests, " +
     "       tardy_requests, " +
     "       days_to_close_requests_avg, " +
-    "       request_time_bins " +
+    "       request_time_bins, " +
+    "       request_counts " +
     "FROM ward_summary('" + ward + "', " + "'" + start +"', '" + end + "') " +
     "AS " +
     "(opened_requests int, " +
     " closed_requests int, " +
     " tardy_requests int, " +
     " days_to_close_requests_avg double precision, " +
-    " request_time_bins text);"
+    " request_time_bins text, " +
+    " request_counts text)"
   ).on('row', function(result) {
     result.request_time_bins = JSON.parse(result.request_time_bins);
+    console.log(result.request_counts);
+    result.request_counts = JSON.parse(result.request_counts);
     response.stats = result;
   }).on('end', function() {
     console.log(response);

@@ -24,7 +24,7 @@ RETURNS RECORD AS $$
   request_time_bin_friday integer; -- 5
   request_time_bin_saturday integer; -- 6
   request_types text;
-  --request_types_table TABLE;
+  request_types_ret_row RECORD;
   ret RECORD;
 
   BEGIN
@@ -174,19 +174,26 @@ RETURNS RECORD AS $$
                       '}';
 
   -- GET REQUEST COUNTS
-  --SELECT count(*) as count, service_name 
-  --INTO request_types_table
-  --FROM service_requests
-  --WHERE ward = ward_number
-  --  AND requested_datetime >= start_date
-  --  AND requested_datetime < end_date;
-
+  request_types := '[';
+  FOR request_types_ret_row IN SELECT count(*) as count, service_name 
+  FROM service_requests
+  WHERE ward = ward_number
+    AND requested_datetime >= start_date
+    AND requested_datetime < end_date
+  GROUP BY service_name
+  ORDER BY count(*)  DESC
+  LOOP
+    request_types := request_types || '{"type":"' || request_types_ret_row.service_name || '", "count":' || request_types_ret_row.count || '},';
+  END LOOP;
+  request_types := trim(trailing ',' from request_types) || ']';
+  
   -- PACKAGE FOR SHIPPING
   SELECT opened_requests, 
          closed_requests, 
          tardy_requests,
          days_to_close_requests_avg,
-         request_time_bins 
+         request_time_bins,
+         request_types
   INTO ret;
 
   -- SEND IT
