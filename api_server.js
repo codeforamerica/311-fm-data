@@ -36,10 +36,10 @@ app.get('/api/v1/:ward/summary', function(req, res){
   };
 
   database.query(
-    "SELECT count(*) as requests_opened " +
-    "FROM service_requests " +
-    "WHERE ward = '" + ward + "' AND " +
-    "requested_datetime >= '" + start + "' AND requested_datetime < '" + end + "'"
+    "SELECT opened_requests, closed_requests, tardy_requests, days_to_close_requests_avg " +
+    "FROM ward_summary('" + ward + "', " +
+      "'" + start +"', '" + end + "') AS " +
+    "(opened_requests int, closed_requests int, tardy_requests int, days_to_close_requests_avg double precision);"
   ).on('row', function(result) {
     response.stats = result;
   }).on('end', function() {
