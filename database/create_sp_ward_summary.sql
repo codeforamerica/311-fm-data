@@ -12,6 +12,19 @@ RETURNS RECORD AS $$
   closed_requests integer;
   tardy_requests integer;
   days_to_close_requests_avg double precision;
+  request_time_bins text;
+  request_time_bin_morning integer;
+  request_time_bin_afternoon integer;
+  request_time_bin_night integer;
+  request_time_bin_sunday integer; -- 0
+  request_time_bin_monday integer; -- 1
+  request_time_bin_tuesday integer; -- 2
+  request_time_bin_wednesday integer; -- 3
+  request_time_bin_thursday integer; -- 4
+  request_time_bin_friday integer; -- 5
+  request_time_bin_saturday integer; -- 6
+  request_types text;
+  --request_types_table TABLE;
   ret RECORD;
 
   BEGIN
@@ -50,11 +63,131 @@ RETURNS RECORD AS $$
     AND requested_datetime >= start_date 
     AND requested_datetime < end_date;
 
+  -- BIN REQUEST TIMES INTO TIME OF DAY BUCKETS
+
+  -- GET MORNING BIN
+  SELECT count(*)
+  INTO request_time_bin_morning
+  FROM service_requests 
+  WHERE extract(hour from requested_datetime) >= 0
+    AND extract(hour from requested_datetime) < 11
+    AND ward = ward_number
+    AND requested_datetime >= start_date 
+    AND requested_datetime < end_date;
+
+  -- GET AFTERNOON BIN
+  SELECT count(*)
+  INTO request_time_bin_afternoon
+  FROM service_requests 
+  WHERE extract(hour from requested_datetime) >= 11
+    AND extract(hour from requested_datetime) < 17
+    AND ward = ward_number
+    AND requested_datetime >= start_date 
+    AND requested_datetime < end_date;    
+
+  -- GET NIGHT BIN
+  SELECT count(*)
+  INTO request_time_bin_night
+  FROM service_requests 
+  WHERE extract(hour from requested_datetime) >= 17
+    AND extract(hour from requested_datetime) < 24
+    AND ward = ward_number
+    AND requested_datetime >= start_date 
+    AND requested_datetime < end_date;
+
+  -- GET SUNDAY BIN
+  SELECT count(*)
+  INTO request_time_bin_sunday
+  FROM service_requests
+  WHERE extract(DOW from requested_datetime) = 0
+    AND ward = ward_number
+    AND requested_datetime >= start_date 
+    AND requested_datetime < end_date;
+
+  -- GET MONDAY BIN
+  SELECT count(*)
+  INTO request_time_bin_monday
+  FROM service_requests
+  WHERE extract(DOW from requested_datetime) = 1
+    AND ward = ward_number
+    AND requested_datetime >= start_date 
+    AND requested_datetime < end_date;
+
+  -- GET TUESDAY BIN
+  SELECT count(*)
+  INTO request_time_bin_tuesday
+  FROM service_requests
+  WHERE extract(DOW from requested_datetime) = 2
+    AND ward = ward_number
+    AND requested_datetime >= start_date 
+    AND requested_datetime < end_date;
+
+  -- GET WEDNESDAY BIN
+  SELECT count(*)
+  INTO request_time_bin_wednesday
+  FROM service_requests
+  WHERE extract(DOW from requested_datetime) = 3
+    AND ward = ward_number
+    AND requested_datetime >= start_date 
+    AND requested_datetime < end_date;
+
+  -- GET THURSDAY BIN
+  SELECT count(*)
+  INTO request_time_bin_thursday
+  FROM service_requests
+  WHERE extract(DOW from requested_datetime) = 4
+    AND ward = ward_number
+    AND requested_datetime >= start_date 
+    AND requested_datetime < end_date;
+
+  -- GET FRIDAY BIN
+  SELECT count(*)
+  INTO request_time_bin_friday
+  FROM service_requests
+  WHERE extract(DOW from requested_datetime) = 5
+    AND ward = ward_number
+    AND requested_datetime >= start_date 
+    AND requested_datetime < end_date;
+
+  -- GET SATURDAY BIN
+  SELECT count(*)
+  INTO request_time_bin_saturday
+  FROM service_requests
+  WHERE extract(DOW from requested_datetime) = 6
+    AND ward = ward_number
+    AND requested_datetime >= start_date 
+    AND requested_datetime < end_date;        
+
+ -- PACKAGE TIME BINS
+ request_time_bins := '{"morning":' || request_time_bin_morning || 
+                      ',"afternoon":' || request_time_bin_afternoon || 
+                      ',"night":' || request_time_bin_night || 
+                      ',"days": {' ||
+                      '    "sunday":' || request_time_bin_sunday || ',' ||
+                      '    "monday":' || request_time_bin_monday || ',' ||
+                      '    "tuesday":' || request_time_bin_tuesday || ',' ||
+                      '    "wednesday":' || request_time_bin_wednesday || ',' ||
+                      '    "thursday":' || request_time_bin_thursday || ',' ||
+                      '    "friday":' || request_time_bin_friday || ',' ||
+                      '    "saturday":' || request_time_bin_saturday ||
+                      '  }' ||
+                      '}';
+
+  -- GET REQUEST COUNTS
+  --SELECT count(*) as count, service_name 
+  --INTO request_types_table
+  --FROM service_requests
+  --WHERE ward = ward_number
+  --  AND requested_datetime >= start_date
+  --  AND requested_datetime < end_date;
+
   -- PACKAGE FOR SHIPPING
   SELECT opened_requests, 
          closed_requests, 
          tardy_requests,
-         days_to_close_requests_avg INTO ret;
+         days_to_close_requests_avg,
+         request_time_bins 
+  INTO ret;
 
   -- SEND IT
   RETURN ret;
