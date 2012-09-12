@@ -13,20 +13,15 @@ RETURNS setof RECORD AS $$
 
   FOR i IN 1..50 LOOP -- OUTER
 
-  FOR rec in SELECT opened_requests, 
+  FOR rec in SELECT ward,
+                  opened_requests, 
                   closed_requests, 
-                  tardy_requests,
-                  days_to_close_requests_avg,
-                  request_time_bins,
-                  request_counts,
-                  trim(to_char(i, '99')) as ward
-           FROM ward_summary(trim(to_char(i, '99')), start_date, end_date)
-           AS (opened_requests int,
+                  tardy_requests
+           FROM ward_summary_minimal(trim(to_char(i, '99')), start_date, end_date)
+           AS (ward text,
+               opened_requests int,
                closed_requests int,
-               tardy_requests int,
-               days_to_close_requests_avg double precision,
-               request_time_bins text,
-               request_counts text)
+               tardy_requests int)
   LOOP -- INNER
     RETURN NEXT rec;
   END LOOP; -- INNER

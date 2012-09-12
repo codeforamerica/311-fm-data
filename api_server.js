@@ -38,26 +38,17 @@ app.get('/api/v1/ward/summary', function(req, res){
   };
 
   database.query(
-    "SELECT opened_requests, " +
+    "SELECT ward, " +
+    "       opened_requests, " +
     "       closed_requests, " +
-    "       tardy_requests, " +
-    "       days_to_close_requests_avg, " +
-    "       request_time_bins, " +
-    "       request_counts, " +
-    "       ward " +
+    "       tardy_requests " +
     "FROM ward_summary('" + start +"', '" + end + "') " +
     "AS " +
-    "(opened_requests int, " +
+    "(ward text, " +
+    " opened_requests int, " +
     " closed_requests int, " +
-    " tardy_requests int, " +
-    " days_to_close_requests_avg double precision, " +
-    " request_time_bins text, " +
-    " request_counts text, " +
-    " ward text)"
+    " tardy_requests int)"
   ).on('row', function(result) {
-    result.request_time_bins = JSON.parse(result.request_time_bins);
-    result.request_counts = JSON.parse(result.request_counts);
-    response.stats = result;
     responses.push(result);
   }).on('end', function() {
     console.log(response);

@@ -1,0 +1,1 @@
+﻿CREATE INDEX idx_ward ON service_requests(ward);
