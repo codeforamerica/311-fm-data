@@ -15,7 +15,6 @@ app.get('/', function(req, res){
   res.send("311.fm API");
 });
 
-
 app.get('/api/v1/ward/summary', function(req, res){
 
   console.log(req.originalUrl);
@@ -55,7 +54,7 @@ app.get('/api/v1/ward/summary', function(req, res){
     " request_time_bins text, " +
     " request_counts text, " +
     " ward text)"
-  ).on('row', function(result) {    
+  ).on('row', function(result) {
     result.request_time_bins = JSON.parse(result.request_time_bins);
     result.request_counts = JSON.parse(result.request_counts);
     response.stats = result;
@@ -66,7 +65,6 @@ app.get('/api/v1/ward/summary', function(req, res){
   });
 
 });
-
 
 app.get('/api/v1/:ward/summary', function(req, res){
 
