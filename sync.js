@@ -4,8 +4,9 @@
 
 var request = require('request'),
   tempus = require('Tempus'),
-  pg = require('pg').native;
-  _ = require('underscore'), argv = require("optimist").argv;
+  pg = require('pg')['native'],
+  _ = require('underscore'),
+  argv = require("optimist").argv;
 
 var baseUrl = "http://311api.cityofchicago.org/open311/v2/requests.json?extensions=true&page_size=100",
   serviceRequests = [],

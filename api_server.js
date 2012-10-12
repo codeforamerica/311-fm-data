@@ -1,9 +1,8 @@
 var express = require('express'),
-    pg = require('pg').native;
+    pg = require('pg')['native'];
 
 // configure database
 database = new pg.Client(process.env.DATABASE_URL || postgresUrl);
-//database.on('drain', database.end.bind(database)); //disconnect client when all queries are finished
 database.connect();
 
 // configure server
