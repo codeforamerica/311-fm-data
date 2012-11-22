@@ -46,14 +46,12 @@ app.get('/api/v1/ward/summary', function(req, res){
     "(ward text, " +
     " opened_requests int, " +
     " closed_requests int, " +
-    " tardy_requests int)"
-  ).on('row', function(result) {
-    responses.push(result);
-  }).on('end', function() {
-    console.log(response);
-    res.jsonp(200, response);
-  });
-
+    " tardy_requests int)").on('row', function(result) {
+      responses.push(result);
+    }).on('end', function() {
+      console.log(response);
+      res.jsonp(200, response);
+    });
 });
 
 app.get('/api/v1/:ward/summary', function(req, res){

@@ -2,28 +2,30 @@
  * Sync 311.fm database with remote endpoint.
  */
 
-var request = require('request'),
-  tempus = require('Tempus'),
-  pg = require('pg')['native'],
-  _ = require('underscore'),
-  argv = require("optimist").argv;
+var request = require('request')
+  , tempus = require('Tempus')
+  , pg = require('pg')['native']
+  , _ = require('underscore')
+  , argv = require("optimist").argv;
 
-var baseUrl = "http://311api.cityofchicago.org/open311/v2/requests.json?extensions=true&page_size=100",
-  serviceRequests = [],
-  datetime, postgresUrl, database;
+var baseUrl = "http://311api.cityofchicago.org/open311/v2/requests.json?extensions=true&page_size=100"
+  , serviceRequests = []
+  , datetime
+  , postgresUrl
+  , database;
 
 // sql statements
 var insertStatement = "INSERT INTO service_requests(service_request_id, " +
-  "status, duplicate, parent_service_request_id, requested_datetime, " +
-  "updated_datetime, opened_datetime, closed_datetime, service_name, service_code, " +
-  "agency_responsible, lat, long, zipcode, channel, ward, police_district) " +
-  "values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)",
-  updateStatement = "UPDATE service_requests SET status = $2, duplicate = $3, " +
-    "parent_service_request_id = $4, requested_datetime = $5, updated_datetime =$6, " +
-    "opened_datetime = $7, closed_datetime = $8, service_name = $9, service_code = $10, " +
-    "agency_responsible = $11, lat = $12, long = $13, zipcode = $14, channel = $15, " +
-    "ward = $16, police_district = $17 " +
-    "WHERE service_request_id = $1";
+        "status, duplicate, parent_service_request_id, requested_datetime, " +
+        "updated_datetime, opened_datetime, closed_datetime, service_name, service_code, " +
+        "agency_responsible, lat, long, zipcode, channel, ward, police_district) " +
+        "values($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)"
+  , updateStatement = "UPDATE service_requests SET status = $2, duplicate = $3, " +
+        "parent_service_request_id = $4, requested_datetime = $5, updated_datetime =$6, " +
+        "opened_datetime = $7, closed_datetime = $8, service_name = $9, service_code = $10, " +
+        "agency_responsible = $11, lat = $12, long = $13, zipcode = $14, channel = $15, " +
+        "ward = $16, police_district = $17 " +
+        "WHERE service_request_id = $1";
 
 // postgres error codes
 var duplicateKeyError = "23505";
