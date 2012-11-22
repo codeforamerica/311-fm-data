@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 var argv = require("optimist").argv
-  , pg = require('pg')['native']
+  , pg = require('pg')
   , fs = require('fs');
 
 if (argv.help || argv.h){
