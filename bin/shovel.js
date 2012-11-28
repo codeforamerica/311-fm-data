@@ -2,7 +2,8 @@
 
 var argv = require("optimist").argv
   , fs = require('fs')
-  , exec = require('child_process').exec;
+  , exec = require('child_process').exec
+  , sync = require('../lib/sync');
 
 if (argv.help || argv.h){
   printHelp();
@@ -12,12 +13,24 @@ if (argv.help || argv.h){
 var category = argv._[0];
 var command = argv._[1];
 
-if (category === "database"){
-  if (command === "init"){
+if (category === 'database'){
+  if (command === 'init'){
     initDatabase();
+  }
+  if (command === 'sync'){
+    syncDatabase();
+  } else{
+    printHelp();
   }
 } else {
   printHelp();
+}
+
+function syncDatabase(){
+  var s = sync(argv.database)
+    , start = argv.start;
+
+  s.download(start);
 }
 
 function initDatabase(){
@@ -71,16 +84,22 @@ function runScript(database, scripts, scriptIdx){
 function printHelp(){
   console.log('Usage: shovel [options]');
   console.log('       shovel database init [arguments]');
+  console.log('       shovel database sync [arguments]');
   console.log();
   console.log('Arguments:');
-  console.log('  --database     psql connection string');
+  console.log('  --database     database connection string');
+  console.log('                 *** NOTE: this is a psql connstr for init and a postgres URL for sync. ***');
   console.log('  --scripts      path for database scripts');
-  console.log('');
+  console.log('  --start        start datetime for sync operation');
+  console.log();
   console.log('Options:');
   console.log('  -h, --help     print this help documentation');
   console.log();
   console.log('Examples:');
   console.log('  apply 311fm database schema to EXISTING postgres database:');
   console.log('  $ shovel database init --database "dbname=testdb" --scripts ./scripts');
+  console.log();
+  console.log('  sync data from Open311 endpoint to postgres database:');
+  console.log('  $ shovel database sync --start "2012-11-28T00:00:00"');
 }
 
