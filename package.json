@@ -17,7 +17,8 @@
     "express": "3.0"
   },
   "engines": {
-    "node": "0.8.*"
+    "node": "0.8.14",
+    "npm": "1.1.65"
   },
   "bin": {
     "shovel": "bin/shovel.js"
