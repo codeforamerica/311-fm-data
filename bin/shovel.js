@@ -50,7 +50,7 @@ function initDatabase(){
 
 function runScript(database, scripts, scriptIdx){
   console.log('running', scripts[scriptIdx]);
-  var child = exec('psql -d ' + database + ' -f ' + scripts[scriptIdx], function(error, stdout, stderr){
+  var child = exec('psql "' + database + '" -f ' + scripts[scriptIdx], function(error, stdout, stderr){
     console.log(stdout);
     console.log(stderr);
     if (error !== null){
@@ -73,14 +73,14 @@ function printHelp(){
   console.log('       shovel database init [arguments]');
   console.log();
   console.log('Arguments:');
-  console.log('  --database     name of database to run scripts on');
+  console.log('  --database     psql connection string');
   console.log('  --scripts      path for database scripts');
   console.log('');
   console.log('Options:');
   console.log('  -h, --help     print this help documentation');
   console.log();
   console.log('Examples:');
-  console.log('  apply 311fm database schema to existing postgres database:');
-  console.log('  $ shovel database init --database testdb --scripts ./scripts');
+  console.log('  apply 311fm database schema to EXISTING postgres database:');
+  console.log('  $ shovel database init --database "dbname=testdb" --scripts ./scripts');
 }
 
