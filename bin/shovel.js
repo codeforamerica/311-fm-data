@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 var argv = require("optimist").argv
-  , pg = require('pg')
-  , fs = require('fs');
+  , fs = require('fs')
+  , exec = require('child_process').exec;
 
 if (argv.help || argv.h){
   printHelp();
@@ -14,34 +14,57 @@ var command = argv._[1];
 
 if (category === "database"){
   if (command === "init"){
-    createDatabase();
+    initDatabase();
   }
 } else {
   printHelp();
 }
 
-function createDatabase(){
-  var connection = argv.connection || 'localhost';
-  var scripts = argv.scripts || '.';
-  var script = '';
+function initDatabase(){
+  var database = argv.database || ''
+    , scriptsPath = argv.scripts || '.'
+    , scripts = [];
 
-  try{
-    script = fs.readFileSync(scripts + '/schema.sql');
-  } catch(e){
-    console.log('ERROR: cannot find database scripts at path: ' + scripts);
+  try {
+    var scriptNames = fs.readdirSync(scriptsPath);
+  } catch(e) {
+    console.log(e.message);
     process.exit(1);
   }
 
-  console.log('creating database with connection ' + connection  + '...');
-  var database = new pg.Client(connection);
-  database.on('drain', database.end.bind(database)); //disconnect client when all queries are finished
-  database.connect();
-  var query = database.query(script.toString());
-  query.on('error', function(){
-    console.log('it did not work out; check arguments and try again');
+  for (var i = 0; i < scriptNames.length; i++) {
+    var scriptName = scriptNames[i];
+    try{
+      scripts.push(scriptsPath + '/' + scriptName);
+    } catch(e){
+      console.log('unable to find database scripts at path: ' + scriptsPath);
+      process.exit(1);
+    }
+  }
+
+  console.log('running scripts on database ' + database);
+
+  var scriptIdx = 0;
+  runScript(database, scripts, scriptIdx);
+}
+
+function runScript(database, scripts, scriptIdx){
+  console.log('running', scripts[scriptIdx]);
+  var child = exec('psql -d ' + database + ' -f ' + scripts[scriptIdx], function(error, stdout, stderr){
+    console.log(stdout);
+    console.log(stderr);
+    if (error !== null){
+      console.log(error);
+    }
   });
-  query.on('end', function(){
-    process.exit();
+  child.on('exit', function(code, signal){
+    scriptIdx++;
+    if (scriptIdx < scripts.length){
+      runScript(database, scripts, scriptIdx);
+    } else{
+      console.log('finished running scripts');
+      process.exit();
+    }
   });
 }
 
@@ -50,7 +73,7 @@ function printHelp(){
   console.log('       shovel database init [arguments]');
   console.log();
   console.log('Arguments:');
-  console.log('  --connection   connection string for database to install onto');
+  console.log('  --database     name of database to run scripts on');
   console.log('  --scripts      path for database scripts');
   console.log('');
   console.log('Options:');
@@ -58,6 +81,6 @@ function printHelp(){
   console.log();
   console.log('Examples:');
   console.log('  apply 311fm database schema to existing postgres database:');
-  console.log('  $ shovel database init --connection "tcp://user:pass@localhost/testdb" --scripts ./scripts');
+  console.log('  $ shovel database init --database testdb --scripts ./scripts');
 }
 
